@@ -2,22 +2,32 @@ import java.util.*;
 
 public class Vertex {
     private String label;
+    private String desc; // 描述
     private List<Edge> edgeList;
     private Vertex preVertex;
     private boolean isVisited;
+
 
     public Vertex(String label) {
         this.label = label;
         edgeList = new ArrayList<>();
     }
 
+    public Vertex(String label, String desc) {
+        this.label = label;
+        this.desc = desc;
+        edgeList = new ArrayList<>();
+    }
+
     public class Edge{
         private int weight;
+        private String parentLabel;
         private Vertex toVertex; // 终点
 
         public Edge(int weight, Vertex toVertex) {
             this.weight = weight;
             this.toVertex = toVertex;
+            parentLabel = label;
         }
 
         public int getWeight() {
@@ -26,6 +36,14 @@ public class Vertex {
 
         public void setWeight(int weight) {
             this.weight = weight;
+        }
+
+        public String getParentLabel() {
+            return parentLabel;
+        }
+
+        public void setParentLabel(String parentLabel) {
+            this.parentLabel = parentLabel;
         }
 
         public Vertex getToVertex() {
@@ -48,6 +66,14 @@ public class Vertex {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
     }
 
     public List<Edge> getEdgeList() {
@@ -123,6 +149,18 @@ public class Vertex {
             }
         }
         return null;
+    }
+
+    public void removeEdge(Vertex vertex){
+        int index = -1;
+        for(int i = 0; i < edgeList.size(); i++){
+            if (edgeList.get(i).getToVertex().equals(vertex))
+                index = i;
+        }
+        if (index == -1)
+            return;
+        // vertex.edgeList.remove(edgeList.get(index));
+        edgeList.remove(index);
     }
 
     /**

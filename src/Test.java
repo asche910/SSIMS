@@ -3,13 +3,13 @@ import java.util.Arrays;
 /**
  * 测试类
  */
-public class Temp {
+public class Test {
     public static void main(String[] args){
         System.out.println("Test Start: ");
 
         Graph graph = new Graph();
 
-        Vertex vertex1 = new Vertex("A");
+/*        Vertex vertex1 = new Vertex("A");
         Vertex vertex2 = new Vertex("B");
         Vertex vertex3 = new Vertex("C");
         Vertex vertex4 = new Vertex("D");
@@ -30,16 +30,24 @@ public class Temp {
         graph.addEdge("C", "E", 4);
         graph.addEdge("C", "F", 7);
         graph.addEdge("D", "F", 4);
-        graph.addEdge("E", "F", 3);
+        graph.addEdge("E", "F", 3);*/
+        graph.readFromFile();
 
         System.out.print(graph.toString());
-        System.out.println(graph.getShortestPathLong("A", "F"));
-        System.out.println(graph.getShortestPath("F"));
 
-        System.out.println(Arrays.toString(graph.getVertex("A").getEdgeList().toArray()));
+        graph.removeVertex(0);
 
-        System.out.println(graph.getPathByDFS("A"));
+        System.out.print(graph.toString());
+
+        graph.queryVertex(0);
+
+        graph.searchShortestPath(0, 4);
+
+        graph.navigateAllVertex(0);
 
         graph.getMinSpanTreeByPrim();
+
+
+        // graph.saveToFile();
     }
 }

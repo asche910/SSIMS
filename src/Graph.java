@@ -1,21 +1,28 @@
+import java.io.*;
 import java.util.*;
 
 /**
  * 由多个节点组成的图
  */
+@SuppressWarnings("Duplicates")
 public class Graph {
     private Map<String, Vertex> vertexMap;
+    private Map<String, Integer> labelMap; // 景点名称转化为对应的index
     private int edgeCount;
+
+    private String verFileName = "Vex.txt";
+    private String edgeFileName = "Edge.txt";
 
     public Graph() {
         vertexMap = new LinkedHashMap<>();
+        labelMap = new LinkedHashMap<>();
     }
 
     public int getEdgeCount() {
         return edgeCount;
     }
 
-    public int getVertexSize() {
+    private int getVertexSize() {
         return vertexMap.size();
     }
 
@@ -42,8 +49,220 @@ public class Graph {
         return false;
     }
 
+    /**
+     * 删除节点操作
+     * @param index
+     */
+    public void removeVertex(int index){
+        handleIndex(index);
+
+        Vertex vertex = getVertexList().get(index);
+        List<Vertex.Edge> edgeList = vertex.getEdgeList();
+        // 首先删除与之相连的边
+        for (Vertex.Edge edge: edgeList){
+             // vertex.removeEdge(edge.getToVertex());
+            edge.getToVertex().removeEdge(vertex);
+        }
+        // 然后删除此节点
+        vertexMap.remove(vertex.getLabel());
+    }
+
+    /**
+     * 删除边操作
+     * @param from
+     * @param to
+     */
+    public void removeEdge(int from, int to){
+        handleIndex(from);
+        handleIndex(to);
+
+        List<Vertex> vertexList = getVertexList();
+        Vertex fromVertex = vertexList.get(from);
+        Vertex toVertex = vertexList.get(to);
+        fromVertex.removeEdge(toVertex);
+        toVertex.removeEdge(fromVertex);
+    }
+
+    /**
+     * 修改景点信息（包括名称和介绍）
+     * @param index
+     * @param isName true --> name; false --> desc
+     * @param content name or desc
+     */
+    public void editVertex(int index, boolean isName, String content){
+        handleIndex(index);
+
+        Vertex vertex = getVertexList().get(index);
+
+        if (isName)
+            vertex.setLabel(content);
+        else
+            vertex.setLabel(content);
+    }
+
+    /**
+     * 修改道路信息（长度）
+     * @param from
+     * @param to
+     */
+    public void editEdge(int from, int to, int weight){
+        handleIndex(from);
+        handleIndex(to);
+
+        List<Vertex> vertexList = getVertexList();
+        Vertex fromVertex = vertexList.get(from);
+        Vertex toVertex = vertexList.get(to);
+
+
+        List<Vertex.Edge> edgeList = fromVertex.getEdgeList();
+        for (Vertex.Edge edge: edgeList){
+            if (edge.getToVertex().equals(toVertex)){
+                edge.setWeight(weight);
+                break;
+            }
+        }
+        List<Vertex.Edge> edgeList_ = toVertex.getEdgeList();
+        for (Vertex.Edge edge: edgeList_){
+            if (edge.getToVertex().equals(fromVertex)){
+                edge.setWeight(weight);
+                break;
+            }
+        }
+    }
+
     public Vertex getVertex(String target) {
         return vertexMap.get(target);
+    }
+
+    /**
+     * 景点查询
+     * @param index
+     */
+    public void queryVertex(int index){
+        handleIndex(index);
+        Vertex vertex = getVertexList().get(index);
+        System.out.println("景点名称：" + vertex.getLabel());
+        System.out.println("景点介绍：" + vertex.getDesc());
+        System.out.print("相邻景点及距离：");
+        List<Vertex.Edge> edgeList = vertex.getEdgeList();
+        for (Vertex.Edge edge: edgeList) {
+            System.out.printf("%s --> %dm; ", edge.getToVertex().getLabel(), edge.getWeight());
+        }
+        System.out.println();
+    }
+
+    public void searchShortestPath(int from, int to){
+        List<Vertex> vertexList = getVertexList();
+        String fromLabel = vertexList.get(from).getLabel();
+        String toLabel = vertexList.get(to).getLabel();
+        int minLength = getShortestPathLong(fromLabel, toLabel);
+        System.out.println("最短路线：" + getShortestPath(toLabel));
+        System.out.printf("路径总长度：%dm\n", minLength);
+    }
+
+    public void navigateAllVertex(int index){
+        handleIndex(index);
+        String label = getVertexList().get(index).getLabel();
+        System.out.println("游览全图：" + getPathByDFS(label));
+    }
+
+    /**
+     * 从文件读取节点及边的信息
+     */
+    public void readFromFile(){
+        File verFile  = new File(verFileName);
+        File edgeFile = new File(edgeFileName);
+
+        try {
+            FileInputStream verFIS = new FileInputStream(verFile);
+            FileInputStream edgeFIS = new FileInputStream(edgeFile);
+            BufferedReader verReader = new BufferedReader(new InputStreamReader(verFIS));
+            BufferedReader edgeReader = new BufferedReader(new InputStreamReader(edgeFIS));
+
+            int num = Integer.parseInt(verReader.readLine().trim());
+            for (int i = 0; i < num; i++){
+                int index = Integer.parseInt(verReader.readLine().trim());
+                String label = verReader.readLine().trim();
+                String desc = verReader.readLine().trim();
+                Vertex vertex = new Vertex(label, desc);
+                addVertex(vertex);
+            }
+            verReader.close();
+            verFIS.close();
+            // ------------------------------------>
+            List<Vertex> vertexList = getVertexList();
+            String line;
+            while ((line = edgeReader.readLine()) != null){
+                String[] strs = line.split("\\b{3,}");
+                String[] nums = new String[3];
+                int index = 0;
+                for (int i = 0; i < strs.length; i++){
+                    if (!strs[i].trim().equals(""))
+                        nums[index++] = strs[i].trim();
+                }
+                // System.out.println(Arrays.toString(strs));
+                int from = Integer.parseInt(nums[0]);
+                int to = Integer.parseInt(nums[1]);
+                int weight = Integer.parseInt(nums[2]);
+
+                addEdge(vertexList.get(from), vertexList.get(to), weight);
+            }
+            edgeReader.close();
+            edgeFIS.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 保存节点及边的信息至文件
+     */
+    public void saveToFile(){
+        File verFile  = new File(verFileName);
+        File edgeFile = new File(edgeFileName);
+        try {
+            FileOutputStream verFOS = new FileOutputStream(verFile);
+            FileOutputStream edgeFOS = new FileOutputStream(edgeFile);
+            StringBuilder verBuilder = new StringBuilder();
+            StringBuilder edgeBuilder = new StringBuilder();
+            Set<Vertex.Edge> edgeSet = new HashSet<>();
+
+            List<Vertex> vertexList = getVertexList();
+            verBuilder.append(vertexList.size()).append('\n');
+            for (int i = 0; i < vertexList.size(); i++){
+                Vertex vertex = vertexList.get(i);
+                verBuilder.append(i).append('\n');
+                verBuilder.append(vertex.getLabel()).append('\n');
+                verBuilder.append(vertex.getDesc()).append('\n');
+                // ------------------------->
+                List<Vertex.Edge> edgeList = vertex.getEdgeList();
+                edgeSet.addAll(edgeList);
+            }
+            Map<String, Integer> map = getLabelMap();
+            for (Vertex.Edge edge: edgeSet){
+                int from = map.get(edge.getParentLabel());
+                int to = map.get(edge.getToVertex().getLabel());
+                if (from == to)
+                    continue;
+                edgeBuilder.append(String.format("%d    %d    %d\n", from, to, edge.getWeight()));
+            }
+
+            verFOS.write(verBuilder.toString().getBytes());
+            verFOS.close();
+            edgeFOS.write(edgeBuilder.toString().getBytes());
+            edgeFOS.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * index检测
+     * @param index
+     */
+    private void handleIndex(int index){
+        if (index < 0 || index >= vertexMap.size())
+            throw new IndexOutOfBoundsException();
     }
 
     /**
@@ -53,7 +272,7 @@ public class Graph {
      * @param to
      * @return
      */
-    public int getShortestPathLong(String from, String to) {
+    private int getShortestPathLong(String from, String to) {
         Vertex fromVertex = vertexMap.get(from);
         Vertex toVertex = vertexMap.get(to);
         int index = -1;
@@ -107,7 +326,7 @@ public class Graph {
                     }
                 }
             }
-            System.out.println(Arrays.toString(dist));
+            // System.out.println(Arrays.toString(dist));
 
             // 恢复Visited为默认值，以免影响下次操作
             for (Vertex ver : vertexList) {
@@ -126,7 +345,7 @@ public class Graph {
      * @param target
      * @return
      */
-    public String getShortestPath(String target) {
+    private String getShortestPath(String target) {
         Vertex vertex = vertexMap.get(target);
         if (vertex != null) {
             Vertex temp = vertex.getPreVertex();
@@ -147,7 +366,7 @@ public class Graph {
      * @param from 起点地址
      * @return
      */
-    public String getPathByDFS(String from) {
+    private String getPathByDFS(String from) {
         Vertex vertex = vertexMap.get(from);
         if (vertex == null) {
             return null;
@@ -156,6 +375,10 @@ public class Graph {
         list.add(from);
 
         getPathByDFS(vertex, list);
+        // 恢复Visited为默认值，以免影响下次操作
+        for (Vertex ver : getVertexList()) {
+            ver.setVisited(false);
+        }
         return listToPath(list);
     }
 
@@ -227,19 +450,19 @@ public class Graph {
             }
         }
 
-        StringBuilder pathBuilder = new StringBuilder();
-        List<Integer> lengthList = new ArrayList<>();
+        StringBuilder builder = new StringBuilder();
         int sum = 0;
         // 输出相关信息
         for (index = 0; index < vertexSize - 1; index++){
             Vertex from = vertexList.get(xy[index][0]);
             Vertex to = vertexList.get(xy[index][1]);
             Vertex.Edge edge = from.getEdge(to);
-            pathBuilder.append(new String(from.getLabel() + " --> " + to.getLabel() + " : " + edge.getWeight() + "m\n"));
+            builder.append(new String(from.getLabel() + " --> " + to.getLabel() + " : " + edge.getWeight() + "m\n"));
             sum += edge.getWeight();
         }
-        pathBuilder.append(String.format("总长度：%dm", sum));
-        System.out.println(pathBuilder.toString());
+        builder.append(String.format("总长度：%dm", sum));
+        System.out.println("铺设道路及长度为：");
+        System.out.println(builder.toString());
         // System.out.println(Arrays.toString(adjvex) + " --- " + Arrays.toString(lowcost));
     }
 
@@ -282,13 +505,21 @@ public class Graph {
         return listToPath(list, false);
     }
 
-    public List<Vertex> getVertexList() {
+    public Map<String, Integer> getLabelMap() {
+        // 通过此函数更新labelMap
+        getVertexList();
+        return labelMap;
+    }
+
+    private List<Vertex> getVertexList() {
         List<Vertex> list = new ArrayList<>();
+        labelMap.clear();
         Iterator<Map.Entry<String, Vertex>> iterator = vertexMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<String, Vertex> entry = iterator.next();
             Vertex vertex = entry.getValue();
             list.add(vertex);
+            labelMap.put(vertex.getLabel(), list.size() - 1);
         }
         return list;
     }
