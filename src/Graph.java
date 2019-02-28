@@ -34,6 +34,13 @@ public class Graph {
         vertexMap.put(vertex.getLabel(), vertex);
     }
 
+    public boolean addEdge(int from, int to, int weight) {
+        List<Vertex> vertexList = getVertexList();
+        Vertex fromVertex = vertexList.get(from);
+        Vertex toVertex = vertexList.get(to);
+        return addEdge(fromVertex, toVertex, weight);
+    }
+
     public boolean addEdge(String from, String to, int weight) {
         Vertex fromVertex = vertexMap.get(from);
         Vertex toVertex = vertexMap.get(to);
@@ -94,10 +101,29 @@ public class Graph {
 
         Vertex vertex = getVertexList().get(index);
 
-        if (isName)
+        if (isName) {
+            String oldLabel = vertex.getLabel();
             vertex.setLabel(content);
-        else
-            vertex.setLabel(content);
+            labelMap.put(content, index);
+            vertexMap.remove(oldLabel);
+            vertexMap.put(content, vertex);
+
+            List<Vertex.Edge> edgeList = vertex.getEdgeList();
+            for (Vertex.Edge edge : edgeList){
+                edge.setParentLabel(content);
+                Vertex ver = edge.getToVertex();
+                List<Vertex.Edge> edgeList_ = ver.getEdgeList();
+                for (Vertex.Edge edge_ : edgeList_){
+                    if (edge_.getParentLabel().equals(oldLabel)){
+                        edge_.setParentLabel(content);
+                    }
+                    if (edge_.getToVertex().equals(vertex)){
+                        edge_.getToVertex().setLabel(content);
+                    }
+                }
+            }
+        }else
+            vertex.setDesc(content);
     }
 
     /**
@@ -141,6 +167,7 @@ public class Graph {
     public void queryVertex(int index){
         handleIndex(index);
         Vertex vertex = getVertexList().get(index);
+        System.out.println("景点编号：" + index);
         System.out.println("景点名称：" + vertex.getLabel());
         System.out.println("景点介绍：" + vertex.getDesc());
         System.out.print("相邻景点及距离：");
@@ -240,7 +267,9 @@ public class Graph {
             }
             Map<String, Integer> map = getLabelMap();
             for (Vertex.Edge edge: edgeSet){
-                int from = map.get(edge.getParentLabel());
+                String label = edge.getParentLabel();
+                // System.out.println("label:" + label);
+                int from = map.get(label);
                 int to = map.get(edge.getToVertex().getLabel());
                 if (from == to)
                     continue;

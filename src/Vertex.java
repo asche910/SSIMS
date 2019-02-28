@@ -56,7 +56,7 @@ public class Vertex {
 
         @Override
         public String toString() {
-            return "Edge: " + weight +  " --> " + toVertex.toString();
+            return "Edge: " + parentLabel +  " -- weight " + weight + " --> " + toVertex.toString();
         }
     }
 

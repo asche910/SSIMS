@@ -1,4 +1,3 @@
-import java.util.Arrays;
 
 /**
  * 测试类
@@ -9,7 +8,7 @@ public class Test {
 
         Graph graph = new Graph();
 
-/*        Vertex vertex1 = new Vertex("A");
+        Vertex vertex1 = new Vertex("A");
         Vertex vertex2 = new Vertex("B");
         Vertex vertex3 = new Vertex("C");
         Vertex vertex4 = new Vertex("D");
@@ -30,12 +29,12 @@ public class Test {
         graph.addEdge("C", "E", 4);
         graph.addEdge("C", "F", 7);
         graph.addEdge("D", "F", 4);
-        graph.addEdge("E", "F", 3);*/
-        graph.readFromFile();
+        graph.addEdge("E", "F", 3);
+//        graph.readFromFile();
 
         System.out.print(graph.toString());
 
-        graph.removeVertex(0);
+//        graph.removeVertex(0);
 
         System.out.print(graph.toString());
 
@@ -48,6 +47,6 @@ public class Test {
         graph.getMinSpanTreeByPrim();
 
 
-        // graph.saveToFile();
+         graph.saveToFile();
     }
 }
