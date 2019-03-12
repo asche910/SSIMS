@@ -14,6 +14,7 @@ public class Test {
         Vertex vertex4 = new Vertex("D");
         Vertex vertex5 = new Vertex("E");
         Vertex vertex6 = new Vertex("F");
+        Vertex vertex7 = new Vertex("G");
 
         graph.addVertex(vertex1);
         graph.addVertex(vertex2);
@@ -21,15 +22,18 @@ public class Test {
         graph.addVertex(vertex4);
         graph.addVertex(vertex5);
         graph.addVertex(vertex6);
+        graph.addVertex(vertex7);
 
-        graph.addEdge("A", "B", 4);
-        graph.addEdge("A", "C", 5);
-        graph.addEdge("B", "D", 5);
-        graph.addEdge("B", "E", 2);
-        graph.addEdge("C", "E", 4);
-        graph.addEdge("C", "F", 7);
-        graph.addEdge("D", "F", 4);
-        graph.addEdge("E", "F", 3);
+        graph.addEdge("A", "C", 700);
+        graph.addEdge("A", "E", 1000);
+        graph.addEdge("A", "F", 600);
+        graph.addEdge("B", "C", 1000);
+        graph.addEdge("B", "G", 1000);
+        graph.addEdge("C", "D", 400);
+        graph.addEdge("D", "E", 300);
+        graph.addEdge("D", "G", 400);
+        graph.addEdge("E", "F", 600);
+        graph.addEdge("F", "G", 500);
 //        graph.readFromFile();
 
         System.out.print(graph.toString());
